@@ -101,9 +101,9 @@ double FrontHeight( double tau, double t0, int model = kDrainage );
 /// from the top; +inf for reach >= 1 (never).
 double BurstTime( double t0, double reach, int model = kDrainage );
 
-/// G for the shader: two rows of kShapeSize, row 0 at y = w^4 and row 1 at
-/// y = 1 - w^4, w = i / (kShapeSize - 1) * 0.5^(1/4). Capped at kShapeCap.
-constexpr int kShapeSize    = 2048;
+/// G for the shader: two rows of kShapeSize, row 0 at y = w^8 and row 1 at
+/// y = 1 - w^8, w = i / (kShapeSize - 1) * 0.5^(1/8). Capped at kShapeCap.
+constexpr int kShapeSize    = 4096;
 constexpr double kShapeCap  = 1e20;
 double ShapeTableW( int i );
 std::vector< float > ShapeTable( int model = kDrainage );

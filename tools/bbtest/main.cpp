@@ -35,6 +35,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <complex>
@@ -53,6 +54,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unistd.h>
 #include <vector>
 

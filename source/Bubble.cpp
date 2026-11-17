@@ -311,7 +311,7 @@ void BubblePlugin::composite( const FFGLTextureStruct* input, const GLint* hostV
 	glUniform2i( where( s, "FieldSize" ), gridWidth, gridHeight );
 	glUniform1i( where( s, "FieldOn" ), fieldDirty ? 1 : 0 );
 	glUniform1i( where( s, "Shape" ), kUnitShape );
-	glUniform1f( where( s, "ShapeScale" ), static_cast< float >( ( film::kShapeSize - 1 ) / std::pow( 0.5, 0.25 ) ) );
+	glUniform1f( where( s, "ShapeScale" ), static_cast< float >( ( film::kShapeSize - 1 ) / std::pow( 0.5, 0.125 ) ) );
 	glUniform1i( where( s, "ShapeSize" ), film::kShapeSize );
 	glUniform1i( where( s, "Tint" ), kUnitTint );
 	glUniform1i( where( s, "TintColumns" ), film::kTintColumns );

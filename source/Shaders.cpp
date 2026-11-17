@@ -108,8 +108,8 @@ void main()
 /// To the host.
 const char* const kCompositeFragment = R"(
 uniform sampler2D InputTexture;
-uniform sampler2D Shape;      // 2 rows: G at y = w^4 and at y = 1 - w^4
-uniform float ShapeScale;     // (rows' length - 1) / 0.5^(1/4)
+uniform sampler2D Shape;      // 2 rows: G at y = w^8 and at y = 1 - w^8
+uniform float ShapeScale;     // (rows' length - 1) / 0.5^(1/8)
 uniform int ShapeSize;
 uniform sampler2D Tint;       // linear sRGB tints: columns h cos(theta_t,ref) / TintStep, rows angle
 uniform int TintColumns;
@@ -160,13 +160,15 @@ vec4 tame( vec4 c )
 	return mix( clamp( c, 0.0, 1.0 ), vec4( 0.0 ), isNaN );
 }
 
-// G( y ) from the table, by hand: row 0 below half height indexed by y^(1/4),
-// row 1 above it by (1 - y)^(1/4).
+// G( y ) from the table, by hand: row 0 below half height indexed by y^(1/8),
+// row 1 above it by (1 - y)^(1/8) -- the warp that makes G nearly linear in
+// the index at both ends (G ~ (1 - y)^0.123 at the top, a power of ln y at the
+// foot).
 float shapeAt( float y )
 {
 	int row = y < 0.5 ? 0 : 1;
 	float v = row == 0 ? y : 1.0 - y;
-	float x = sqrt( sqrt( max( v, 0.0 ) ) ) * ShapeScale;
+	float x = sqrt( sqrt( sqrt( max( v, 0.0 ) ) ) ) * ShapeScale;
 	float f = clamp( floor( x ), 0.0, float( ShapeSize - 2 ) );
 	float t = clamp( x - f, 0.0, 1.0 );
 	float lo = texelFetch( Shape, ivec2( int( f ), row ), 0 ).r;

@@ -287,7 +287,7 @@ double BurstTime( double t0, double reach, int model )
 
 double ShapeTableW( int i )
 {
-	return static_cast< double >( i ) / ( kShapeSize - 1 ) * std::pow( 0.5, 0.25 );
+	return static_cast< double >( i ) / ( kShapeSize - 1 ) * std::pow( 0.5, 0.125 );
 }
 
 std::vector< float > ShapeTable( int model )
@@ -295,9 +295,9 @@ std::vector< float > ShapeTable( int model )
 	std::vector< float > t( 2 * kShapeSize );
 	for( int i = 0; i < kShapeSize; ++i )
 	{
-		const double w4 = std::pow( ShapeTableW( i ), 4.0 );
-		t[ i ]               = static_cast< float >( std::min( Shape( w4, model ), kShapeCap ) );
-		t[ kShapeSize + i ]  = static_cast< float >( std::min( Shape( 1.0 - w4, model ), kShapeCap ) );
+		const double w8 = std::pow( ShapeTableW( i ), 8.0 );
+		t[ i ]               = static_cast< float >( std::min( Shape( w8, model ), kShapeCap ) );
+		t[ kShapeSize + i ]  = static_cast< float >( std::min( Shape( 1.0 - w8, model ), kShapeCap ) );
 	}
 	return t;
 }
