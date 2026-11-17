@@ -80,11 +80,12 @@ it differs.
 | shaders | all 3 compile through `glslc`, not merely through Apple's driver |
 | the bundle | universal (`x86_64 arm64`), exports `plugMain`, ad-hoc signs; `oxbow` reads `SW Bubble` / `BB01` / `effect` and renders through it |
 
-Render cost, from `bbtest --bench` on 17 November 2026 on a shared machine, over the harness's
-card, GPU time (`GL_TIME_ELAPSED`): with the film still, **0.44 ms** a frame at 720p (worst
-1.39) and **0.79 ms** at 1080p (worst 1.13); stirred at the default 3 mm/s (12 advection steps a
-frame at 60 fps), **0.76 ms** at 720p (worst 1.02), **1.31 ms** at 1080p (worst 1.64) and
-**4.19 ms** at 4K (one run; worst 4.38). The burst's 48-tap march (only while bursting) and the
+Render cost, from verify.sh's final run on 17 November 2026 on a shared machine (other builds
+running), over the harness's card, GPU time (`GL_TIME_ELAPSED`): with the film still,
+**0.25 ms** a frame at 720p (worst 0.81) and **0.61 ms** at 1080p (worst 0.74); stirred at the
+default 3 mm/s (12 advection steps a frame at 60 fps), **0.76 ms** at 720p (worst 0.83),
+**1.31 ms** at 1080p (worst 1.56) and **4.17 ms** at 4K (one run; worst 4.36). An earlier run
+the same day gave 0.44 and 0.79 ms still: the still frame's cost moves with the machine's load. The burst's 48-tap march (only while bursting) and the
 CPU's time a frame were not measured separately. macOS only.
 
 ### Not established
