@@ -897,7 +897,7 @@ double tauForFront( double yf, double um )
 int runBlack( const Perturb& perturb )
 {
 	std::printf( "\n=== black: where the law is under h_cr = 30 nm the film is the black film -- 12 nm Common, 4 nm Newton -- row by row against\n"
-	             "    the harness's tint of that thickness; where it is over, the law's own thickness (no jump)\n" );
+	             "    the harness's tint of that thickness; where it is over, the harness's tint of the law's own thickness, row by row (no jump)\n" );
 	struct Case
 	{
 		int option;
@@ -943,10 +943,61 @@ int runBlack( const Perturb& perturb )
 					}
 				wrongRows += wrong;
 			}
+
+			// Over h_cr: the law's own thickness, capped at the spec's 4 um,
+			// row by row (no jump at the front). A row's thickness error is
+			// the G table's relative bound + A's float, and the law's slope in
+			// y times the row's float position; times the tint's slope in h
+			// (the table's three column steps about it), on top of a uniform
+			// film's tolerance.
+			const double theta = hAngle( pA ) * kPi / 180.0;
+			const double cosT  = film::CosRefracted( theta );
+			const film::TintTable& table = film::Tints( film::kOptics );
+			auto node = [ & ]( int i, int j, int ch ) { return static_cast< double >( table.rgba[ ( static_cast< size_t >( j ) * film::kTintColumns + i ) * 4 + ch ] ); };
+			const int j0 = std::clamp( static_cast< int >( std::floor( hAngle( pA ) / film::kTintAngleStep ) ), 0, film::kTintRows - 2 );
+			int filmRows = 0, wrongFilm = 0;
+			double worstFilm = 0.0, widestDh = 0.0;
+			for( int y = 0; y < h; ++y )
+			{
+				const double Y   = ( y + 0.5 ) / h;
+				const double law = lawNm( Y, tau, um );
+				if( !( law > hp::kHcr * 1e9 * ( 1.0 + 1e-4 ) ) )
+					continue;
+				++filmRows;
+				const double hNm  = std::min( law, 4000.0 );
+				const double dy   = 1e-6;
+				const double dhdy = std::fabs( lawNm( std::min( Y + dy, 1.0 ), tau, um ) - lawNm( std::max( Y - dy, 0.0 ), tau, um ) ) / ( 2.0 * dy );
+				const double dh   = hNm * ( kShapeRelative + 16.0 * kFloat ) + dhdy * 8.0 * kFloat;
+				widestDh          = worse( widestDh, dh );
+				Expect e          = expectFilm( hNm, hAngle( pA ), E, 1.0 );
+				const int i       = std::clamp( static_cast< int >( std::floor( hNm * cosT / film::kTintStepNm ) ), 1, film::kTintColumns - 3 );
+				for( int ch = 0; ch < 3; ++ch )
+				{
+					double slope = 0.0;
+					for( int a = i - 1; a <= i + 1; ++a )
+						for( int r = j0; r <= j0 + 1; ++r )
+							slope = worse( slope, std::fabs( node( a + 1, r, ch ) - node( a, r, ch ) ) );
+					e.tol[ ch ] += E * slope * cosT / film::kTintStepNm * dh;
+				}
+				bool wrong = false;
+				for( int x = 0; x < w; ++x )
+					for( int ch = 0; ch < 3; ++ch )
+					{
+						const double err = std::fabs( linAt( out, w, x, y, ch ) - e.want[ ch ] ) / e.tol[ ch ];
+						worstFilm        = worse( worstFilm, err );
+						wrong |= !( err <= 1.0 );
+					}
+				wrongFilm += wrong;
+			}
 			Check( blackRows >= h / 4 && wrongRows == 0,
 			       fmt( "%4dx%-4d %s at %.0f deg: %d rows where the law is under 30 nm (by 1e-4, the law's own float error well inside), %d of them "
 			            "with any pixel not the %.0f nm film; worst %.3f of the tolerance (Exposure x the table's bound + float + encode)",
 			            w, h, c.name, c.deg, blackRows, wrongRows, c.blackNm, worst ) );
+			Check( filmRows >= h / 4 && wrongFilm == 0,
+			       fmt( "%4dx%-4d %s at %.0f deg: %d rows over 30 nm, %d of them with any pixel not the harness's tint of the law's thickness there; "
+			            "worst %.3f of the tolerance (a uniform film's, + the tint's slope x the row's thickness error, at most %.2g nm: the G table's "
+			            "%.0e relative, A's float, the law's slope x the row's float position)",
+			            w, h, c.name, c.deg, filmRows, wrongFilm, worstFilm, widestDh, kShapeRelative ) );
 		}
 	}
 	return Verdict();
@@ -1075,13 +1126,16 @@ int runRate( const Perturb& perturb )
 //===========================================================================
 int runClock( const Perturb& perturb )
 {
-	std::printf( "\n=== clock: a host clock in milliseconds from 4.99e8 (Resolume's, measured) against one in seconds from 0, stirred and draining\n"
+	std::printf( "\n=== clock: a host clock in milliseconds from 4.99e8 (Resolume's, measured) against one in seconds from 10 s, stirred and draining\n"
 	             "    (bit-exact at frames 4, 10 and 17 of 60 fps); the host's time held still for 30 frames, then 5 s back: the film holds still;\n"
 	             "    then 10 s on: the film runs one frame's cap, 0.1 s (all bit-exact)\n" );
 	for( const Raster& raster : kRasters )
 	{
 		const Floats card = lookCard( raster.w, raster.h );
 		Rig base, late;
+		// Seconds from 10, so that 5 s back is still a time: a negative one is
+		// no host time at all, and the plugin falls back to the wall clock.
+		base.timeOffset = 10.0;
 		late.timeOffset = 4.99e8;
 		late.timeScale  = 1000.0;
 		late.clockUnit  = 0.001;
@@ -1124,7 +1178,7 @@ int runClock( const Perturb& perturb )
 			return 1;
 		const size_t jumped = differing( base.Output(), ahead.Output() );
 		Check( differ == 0 && moved == 0 && back == 0 && jumped == 0,
-		       fmt( "%4dx%-4d milliseconds from 4.99e8 against seconds from 0: %zu values differ at 0.067, 0.167 and 0.283 s (bit-exact); 30 frames at one host "
+		       fmt( "%4dx%-4d milliseconds from 4.99e8 against seconds from 10: %zu values differ at 0.067, 0.167 and 0.283 s (bit-exact); 30 frames at one host "
 		            "time: %zu values moved; 5 s back: %zu moved; then 10 s on, against a film rendered 0.1 s further (the frame's cap): %zu differ "
 		            "(all bit-exact)",
 		            raster.w, raster.h, differ, moved, back, jumped ) );
@@ -1137,7 +1191,8 @@ int runClock( const Perturb& perturb )
 //===========================================================================
 int runSwirl( const Perturb& perturb )
 {
-	std::printf( "\n=== swirl: Swirl 10 mm/s for 4 s of film (2880 steps), Thickness 0.2 um, Drainage 10: a lattice of pixels traced back through the\n"
+	std::printf( "\n=== swirl: one step (1/720 s) from a still film, every grid cell against the harness's RK2 step in double; then Swirl 10 mm/s\n"
+	             "    for 4 s of film (2880 steps), Thickness 0.2 um, Drainage 10: a lattice of pixels traced back through the\n"
 	             "    spec's six modes in double (the C library's sine), black where the traced origin is above the law's front; a pixel may differ\n"
 	             "    only within the scheme's error of the front: linear interpolation's numerical diffusion (|v| dx / 2 per unit time, each axis)\n"
 	             "    x the age x the traced field's largest second difference, + the composite's own interpolation, + float\n" );
@@ -1146,6 +1201,58 @@ int runSwirl( const Perturb& perturb )
 		const int w = raster.w, h = raster.h;
 		const double aspect = static_cast< double >( w ) / h;
 		const Floats white  = flatCard( w, h, 1.0f, 1.0f, 1.0f );
+
+		// One step from a still film (frames of 1/720 s): a zero field
+		// interpolates to exactly 0, so the grid after it is the step's own
+		// RK2 displacement, and every cell is held to float against the
+		// harness's double step -- the velocity itself (the polynomial sines,
+		// their multiples, the modes), not only where it carries the front.
+		{
+			Rig one;
+			if( !startRig( one, w, h, perturb, &white, 720.0 ) )
+				return 1;
+			stirred( one );
+			if( !one.Advance( 2 ) )
+				return 1;
+			const double swirlOne = hSwirl( pSwirl( 10.0 ) ) * 1e-3;
+			const hp::Flow fl     = hp::flowFor( 1, aspect );
+			const Floats f1       = one.Field();
+			const int gw1 = one.plugin.GridWidth(), gh1 = one.plugin.GridHeight();
+			double vStep = 0.0;//the bound on a step's displacement, frame heights
+			for( int k = 0; k < 6; ++k )
+				vStep += swirlOne * fl.w[ k ] / fl.bound * kPi / ( 0.025 * aspect * 0.025 ) * std::max( fl.p[ k ], fl.q[ k ] ) / film::kStepRate;
+			// Per cell: 4 ulp of its height (its position comes from a GPU
+			// division, good to 2.5 ulp in Metal's fast math, and is not
+			// promised to be the same value in both its uses; + the departure's
+			// rounding), + 1e-5 of the step's bound (the polynomial's 6e-8,
+			// the multiples' x3 and some 20 roundings: 2e-6, rounded up).
+			std::vector< double > rowRatio( static_cast< size_t >( gh1 ), 0.0 ), rowUlps( rowRatio.size(), 0.0 ), rowLargest( rowRatio.size(), 0.0 );
+			parallelFor( gh1, [ & ]( int y ) {
+				for( int x = 0; x < gw1; ++x )
+				{
+					double X = ( x + 0.5 ) / gw1, Y = ( y + 0.5 ) / gh1;
+					const double y0  = Y;
+					const double ulp = std::ldexp( 1.0, std::ilogb( y0 ) - 23 );
+					hp::traceBack( fl, swirlOne, aspect, 1, X, Y );
+					const double err = std::fabs( f1[ static_cast< size_t >( y ) * gw1 + x ] - ( Y - y0 ) );
+					rowRatio[ y ]    = worse( rowRatio[ y ], err / ( 4.0 * ulp + 1e-5 * vStep ) );
+					rowUlps[ y ]     = worse( rowUlps[ y ], err / ulp );
+					rowLargest[ y ]  = std::max( rowLargest[ y ], std::fabs( Y - y0 ) );
+				}
+			} );
+			double ratio = 0.0, ulps = 0.0, largest = 0.0;
+			for( size_t y = 0; y < rowRatio.size(); ++y )
+			{
+				ratio   = worse( ratio, rowRatio[ y ] );
+				ulps    = worse( ulps, rowUlps[ y ] );
+				largest = std::max( largest, rowLargest[ y ] );
+			}
+			Check( one.plugin.StepsRun() == 1 && f1.size() == static_cast< size_t >( gw1 ) * gh1 && ratio <= 1.0,
+			       fmt( "%4dx%-4d one step (%lld run) from a still film, all %dx%d cells against the harness's RK2 step in double: worst %.2f ulp of "
+			            "the cell's height, %.3f of the tolerance (4 ulp + 1e-5 of the step's bound %.3g; the largest displacement %.3g)",
+			            w, h, static_cast< long long >( one.plugin.StepsRun() ), gw1, gh1, ulps, ratio, vStep, largest ) );
+		}
+
 		Rig rig;
 		if( !startRig( rig, w, h, perturb, &white ) )
 			return 1;
