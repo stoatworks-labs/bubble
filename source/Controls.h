@@ -91,7 +91,7 @@ constexpr double kSwirlHigh      = 20.0;                   ///< mm/s
 constexpr double kSlowLow = 1.0, kSlowHigh = 1000.0;       ///< x, logarithmic
 constexpr double kRefillHigh     = 10.0;                   ///< s
 constexpr double kAngleHigh      = 60.0;                   ///< degrees
-constexpr double kExposureHigh   = 50.0;
+constexpr double kExposureHigh   = 200.0;             ///< linear: a soap film reflects about 4%
 
 double ThicknessFromParam( float v );///< micrometres at mid-height at birth
 float ParamFromThickness( double um );

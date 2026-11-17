@@ -505,6 +505,31 @@ struct Rig
 		return true;
 	}
 
+	/// Frames whose picture nothing reads, rendered at Mix 0: the composite's
+	/// early out. The film's clock, the burst's phases and the advection run
+	/// as at any Mix (the plugin reads Mix only as the composite's uniform),
+	/// so this is the same film for a fraction of a software renderer's time.
+	bool Advance( int frames )
+	{
+		if( frames <= 0 )
+			return true;
+		const float mix = plugin.GetById( PT_MIX );
+		plugin.SetById( PT_MIX, 0.0f );
+		const bool ok = Render( frames );
+		plugin.SetById( PT_MIX, mix );
+		return ok;
+	}
+	/// Through frame k: the frames before it advanced unread, frame k rendered.
+	bool RenderTo( int k )
+	{
+		if( k < frame )
+		{
+			std::fprintf( stderr, "RenderTo( %d ) at frame %d\n", k, frame );
+			return false;
+		}
+		return Advance( k - frame ) && Render( 1 );
+	}
+
 	Floats Output() const
 	{
 		Floats pixels( static_cast< size_t >( width ) * height * 4 );
@@ -872,6 +897,8 @@ std::vector< Raster > kRasters = { { 1280, 720 }, { 320, 180 } };
 //---------------------------------------------------------------------------
 int main( int argc, char** argv )
 {
+	//A line at a time: a run cut short by a time limit still says how far it got.
+	std::setvbuf( stdout, nullptr, _IOLBF, 0 );
 	std::string outPath = "bubble.png";
 	std::vector< std::string > settings;
 	int width = 1280, height = 720, frames = 1;

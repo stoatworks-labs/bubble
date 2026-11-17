@@ -354,8 +354,8 @@ float pRefill( double s ) { return static_cast< float >( s / 10.0 ); }
 double hRefill( float v ) { return 10.0 * std::clamp( static_cast< double >( v ), 0.0, 1.0 ); }
 float pAngle( double deg ) { return static_cast< float >( deg / 60.0 ); }
 double hAngle( float v ) { return 60.0 * std::clamp( static_cast< double >( v ), 0.0, 1.0 ); }
-float pExposure( double e ) { return static_cast< float >( e / 50.0 ); }
-double hExposure( float v ) { return 50.0 * std::clamp( static_cast< double >( v ), 0.0, 1.0 ); }
+float pExposure( double e ) { return static_cast< float >( e / 200.0 ); }
+double hExposure( float v ) { return 200.0 * std::clamp( static_cast< double >( v ), 0.0, 1.0 ); }
 
 //===========================================================================
 // Rigs and measurements.
@@ -919,7 +919,7 @@ int runBlack( const Perturb& perturb )
 			rig.Set( PT_ANGLE, pA );
 			const double um = hThickness( pThickness( 1.5 ) ), D = hDrainage( pDrainage( 4.0 ) );
 			const int k      = static_cast< int >( std::ceil( tauForFront( 0.55, um ) / D * 10.0 ) );
-			if( !rig.Render( k + 1 ) )
+			if( !rig.RenderTo( k ) )
 				return 1;
 			const double tau = D * static_cast< double >( ageAt( k, 10.0 ) ) * 1e-6;
 			const Floats out = rig.Output();
@@ -985,7 +985,7 @@ int runDrainage( const Perturb& perturb )
 			for( const double target : targets )
 			{
 				const int k = static_cast< int >( std::ceil( tauForFront( target, um ) / D * 10.0 ) );
-				if( rig.frame <= k && !rig.Render( k + 1 - rig.frame ) )
+				if( rig.frame <= k && !rig.RenderTo( k ) )
 					return 1;
 				const double tau  = D * static_cast< double >( ageAt( k, 10.0 ) ) * 1e-6;
 				const double yf   = hp::front( tau, hp::t0( um * 1e-6 ) );
@@ -1033,8 +1033,9 @@ void stirred( Rig& rig )
 
 int runRate( const Perturb& perturb )
 {
-	std::printf( "\n=== rate: Swirl 10 mm/s, a film draining at Drainage 10: renders at 24, 60 and 144 fps compared at 1, 2 and 3 s (bit-exact: the\n"
-	             "    film's age is whole microseconds and the stirring steps at 720 Hz of it, whatever the frame rate)\n" );
+	std::printf( "\n=== rate: Swirl 10 mm/s, a film draining at Drainage 10: renders at 24, 60 and 144 fps compared at 1/12, 1/6 and 1/4 s, the times\n"
+	             "    all three share (bit-exact: the film's age is whole microseconds and the stirring steps at 720 Hz of it, whatever the frame rate;\n"
+	             "    a frame is 30, 12 or 5 steps)\n" );
 	for( const Raster& raster : kRasters )
 	{
 		const double rates[ 3 ] = { 24.0, 60.0, 144.0 };
@@ -1048,22 +1049,23 @@ int runRate( const Perturb& perturb )
 		}
 		size_t differ = 0;
 		int64_t steps = 0;
-		for( int second = 1; second <= 3; ++second )
+		for( int twelfth = 1; twelfth <= 3; ++twelfth )
 		{
 			Floats out[ 3 ];
 			for( int r = 0; r < 3; ++r )
 			{
-				const int k = static_cast< int >( rates[ r ] ) * second;
-				if( !rigs[ r ].Render( k + 1 - rigs[ r ].frame ) )
+				const int k = static_cast< int >( rates[ r ] ) * twelfth / 12;
+				if( !rigs[ r ].RenderTo( k ) )
 					return 1;
 				out[ r ] = rigs[ r ].Output();
 			}
 			differ += differing( out[ 0 ], out[ 1 ] ) + differing( out[ 0 ], out[ 2 ] );
 			steps = rigs[ 1 ].plugin.StepsRun();
 		}
-		Check( differ == 0 && steps == 3 * film::kStepRate,
-		       fmt( "%4dx%-4d 24 and 144 fps against 60 at 1, 2 and 3 s: %zu values differ (bit-exact); %lld advection steps by 3 s (720 a second of age: %d)",
-		            raster.w, raster.h, differ, static_cast< long long >( steps ), 3 * film::kStepRate ) );
+		Check( differ == 0 && steps == 3 * film::kStepRate / 12,
+		       fmt( "%4dx%-4d 24 and 144 fps against 60 at 1/12, 1/6 and 1/4 s: %zu values differ (bit-exact); %lld advection steps by 1/4 s (720 a second of "
+		            "age: %d)",
+		            raster.w, raster.h, differ, static_cast< long long >( steps ), 3 * film::kStepRate / 12 ) );
 	}
 	return Verdict();
 }
@@ -1074,7 +1076,8 @@ int runRate( const Perturb& perturb )
 int runClock( const Perturb& perturb )
 {
 	std::printf( "\n=== clock: a host clock in milliseconds from 4.99e8 (Resolume's, measured) against one in seconds from 0, stirred and draining\n"
-	             "    (bit-exact at frames 50, 110 and 170 of 60 fps); then the host's time held still for 30 frames: the film holds still (bit-exact)\n" );
+	             "    (bit-exact at frames 4, 10 and 17 of 60 fps); the host's time held still for 30 frames, then 5 s back: the film holds still;\n"
+	             "    then 10 s on: the film runs one frame's cap, 0.1 s (all bit-exact)\n" );
 	for( const Raster& raster : kRasters )
 	{
 		const Floats card = lookCard( raster.w, raster.h );
@@ -1086,25 +1089,45 @@ int runClock( const Perturb& perturb )
 			return 1;
 		stirred( base );
 		stirred( late );
-		// Frames 50, 110 and 170: times a float at 4.99e5 s cannot hold
-		// (its spacing there is 1/32 s; a whole second it can).
+		// Frames 4, 10 and 17: times a float at 4.99e8 ms cannot hold (its
+		// spacing there is 32 ms; frame 0, 4.99e8 itself, it can).
 		size_t differ = 0;
-		for( const int k : { 50, 110, 170 } )
+		for( const int k : { 4, 10, 17 } )
 		{
-			if( !base.Render( k + 1 - base.frame ) || !late.Render( k + 1 - late.frame ) )
+			if( !base.RenderTo( k ) || !late.RenderTo( k ) )
 				return 1;
 			differ += differing( base.Output(), late.Output() );
 		}
 		const Floats before = base.Output();
 		const double held   = base.timeOffset + base.timeScale * base.Seconds( base.frame - 1 );
 		base.beforeFrame    = [ & ]( int f ) { base.timeOffset = held - base.timeScale * base.Seconds( f ); };
-		if( !base.Render( 30 ) )
+		if( !base.Advance( 29 ) || !base.Render( 1 ) )
 			return 1;
 		const size_t moved = differing( before, base.Output() );
-		Check( differ == 0 && moved == 0,
-		       fmt( "%4dx%-4d milliseconds from 4.99e8 against seconds from 0: %zu values differ at 0.83, 1.83 and 2.83 s (bit-exact); 30 frames at one host "
-		            "time: %zu values moved (bit-exact)",
-		            raster.w, raster.h, differ, moved ) );
+
+		// The host's time jumps 5 s back: the film holds; then 10 s on: the
+		// film runs 0.1 s (kMaxFrameMicros), the picture of a film that
+		// rendered on through frame 23 (17/60 s + 0.1 s = 23/60 s).
+		base.beforeFrame = [ & ]( int f ) { base.timeOffset = held - 5.0 - base.timeScale * base.Seconds( f ); };
+		if( !base.Render( 1 ) )
+			return 1;
+		const size_t back = differing( before, base.Output() );
+		const double backAt = held - 5.0;
+		base.beforeFrame    = [ & ]( int f ) { base.timeOffset = backAt + 10.0 - base.timeScale * base.Seconds( f ); };
+		if( !base.Render( 1 ) )
+			return 1;
+		Rig ahead;
+		if( !startRig( ahead, raster.w, raster.h, perturb, &card ) )
+			return 1;
+		stirred( ahead );
+		if( !ahead.RenderTo( 23 ) )
+			return 1;
+		const size_t jumped = differing( base.Output(), ahead.Output() );
+		Check( differ == 0 && moved == 0 && back == 0 && jumped == 0,
+		       fmt( "%4dx%-4d milliseconds from 4.99e8 against seconds from 0: %zu values differ at 0.067, 0.167 and 0.283 s (bit-exact); 30 frames at one host "
+		            "time: %zu values moved; 5 s back: %zu moved; then 10 s on, against a film rendered 0.1 s further (the frame's cap): %zu differ "
+		            "(all bit-exact)",
+		            raster.w, raster.h, differ, moved, back, jumped ) );
 	}
 	return Verdict();
 }
@@ -1128,7 +1151,7 @@ int runSwirl( const Perturb& perturb )
 			return 1;
 		stirred( rig );
 		const int K = 240;
-		if( !rig.Render( K + 1 ) )
+		if( !rig.RenderTo( K ) )
 			return 1;
 		const double um = hThickness( pThickness( 0.2 ) ), D = hDrainage( pDrainage( 10.0 ) ), swirl = hSwirl( pSwirl( 10.0 ) ) * 1e-3;
 		const int64_t age   = ageAt( K, 60.0 );
@@ -1264,7 +1287,7 @@ int runResize( const Perturb& perturb )
 			return 1;
 		stirred( a );
 		stirred( b );
-		if( !a.Render( 60 ) || !a.Resize( w, h, &small ) || !a.Render( 30 ) || !b.Render( 90 ) )
+		if( !a.RenderTo( 11 ) || !a.Resize( w, h, &small ) || !a.RenderTo( 17 ) || !b.RenderTo( 17 ) )
 			return 1;
 		const size_t same = differing( a.Output(), b.Output() );
 
@@ -1273,7 +1296,7 @@ int runResize( const Perturb& perturb )
 		if( !startRig( c, w, h, perturb, &white ) )
 			return 1;
 		stirred( c );
-		if( !c.Render( 240 ) )
+		if( !c.Advance( 60 ) )
 			return 1;
 		c.Set( PT_SWIRL, 0.0f );
 		if( !c.Render( 1 ) )
@@ -1323,7 +1346,7 @@ int runResize( const Perturb& perturb )
 				wrong += black != ( zeta > yf ) && std::fabs( zeta - yf ) > band;
 			}
 		const bool kept = c.plugin.FilmClock().generation == generation;
-		Check( same == 0, fmt( "%4dx%-4d %dx%d for 60 frames, then %dx%d for 30, against %dx%d throughout: %zu values differ (bit-exact)", w, h, 2 * w, 2 * h, w, h, w, h, same ) );
+		Check( same == 0, fmt( "%4dx%-4d %dx%d for 12 frames, then %dx%d for 6, against %dx%d throughout (60 fps, stirred): %zu values differ (bit-exact)", w, h, 2 * w, 2 * h, w, h, w, h, same ) );
 		Check( kept && after.size() == static_cast< size_t >( nw ) * nh && worstField <= fieldTol && wrong == 0 && blacks > 0,
 		       fmt( "%4dx%-4d to %dx%d: the same film (generation kept: %s); grid %dx%d -> %dx%d off the harness's bilinear resample of the grid read "
 		            "back by %.2g (tolerance %.2g: float position x the largest cell step %.3f); %d of %d pixels' black film (%d black) not where the "
@@ -1357,7 +1380,7 @@ int runBurst( const Perturb& perturb )
 				return 1;
 			rig.plugin.HooksForTest().forceNm = c.h;
 			rig.Set( PT_SLOW_MOTION, pSlow( c.slow ) );
-			if( !rig.Render( 3 ) )
+			if( !rig.Advance( 3 ) )
 				return 1;
 			press( rig, PT_POP );
 			const double um = hThickness( pThickness( 1.5 ) ), D = hDrainage( pDrainage( 4.0 ) );
@@ -1369,7 +1392,7 @@ int runBurst( const Perturb& perturb )
 			for( const int j : { 4, 9 } )
 			{
 				const int k = 3 + j;
-				if( !rig.Render( k + 1 - rig.frame ) )
+				if( !rig.RenderTo( k ) )
 					return 1;
 				const double t    = static_cast< double >( ageAt( k, 60.0 ) - agePop ) * 1e-6;
 				const double r    = hp::speed( c.h ) * t / hSlow( pSlow( c.slow ) );
@@ -1402,21 +1425,26 @@ int runBurst( const Perturb& perturb )
 //===========================================================================
 int runRefill( const Perturb& perturb )
 {
-	std::printf( "\n=== refill: New Film mid-drain gives the picture of a fresh film one frame old (bit-exact); left alone, the film bursts when\n"
+	std::printf( "\n=== refill: New Film mid-drain, stirred, gives the picture of a fresh film one frame old (bit-exact); left alone, the film bursts when\n"
 	             "    the front has come 10%% of the way down, shows nothing (empty) for the burst's span + Refill, then a fresh film whose picture\n"
 	             "    is bit for bit a fresh instance's at the same age -- every instant from the harness's own arithmetic\n" );
 	for( const Raster& raster : kRasters )
 	{
 		const int w = raster.w, h = raster.h;
 		const Floats card = lookCard( w, h );
-		// New Film.
+		// New Film, stirred: the old film's field must go with it. Against a
+		// fresh instance given New Film before its first frame (so it is
+		// generation 2 as well: the stirring's modes are the generation's).
 		Rig a, fresh;
 		if( !startRig( a, w, h, perturb, &card, 10.0 ) || !startRig( fresh, w, h, perturb, &card, 10.0 ) )
 			return 1;
-		if( !a.Render( 50 ) )
+		stirred( a );
+		stirred( fresh );
+		if( !a.Advance( 5 ) )
 			return 1;
 		press( a, PT_NEW_FILM );
-		if( !a.Render( 1 ) || !fresh.Render( 2 ) )
+		press( fresh, PT_NEW_FILM );
+		if( !a.Render( 1 ) || !fresh.RenderTo( 1 ) )
 			return 1;
 		const size_t newFilm = differing( a.Output(), fresh.Output() );
 
@@ -1443,9 +1471,10 @@ int runRefill( const Perturb& perturb )
 		int emptyFrames = 0, emptyWrong = 0, kR = -1;
 		for( int k = 0; kR < 0 && k < 2000; ++k )
 		{
-			if( !b.Render( 1 ) )
-				return 1;
+			// The frames before the empty phase are not read.
 			const int64_t at = ageAt( k, 10.0 );
+			if( !( at >= tB + spanB ? b.Render( 1 ) : b.Advance( 1 ) ) )
+				return 1;
 			if( at >= tR )
 			{
 				kR = k;
@@ -1472,14 +1501,14 @@ int runRefill( const Perturb& perturb )
 			if( !startRig( f, w, h, perturb, &card, 10.0 ) )
 				return 1;
 			cycling( f );
-			if( !f.Render( 1 ) )
+			if( !f.Advance( 1 ) )
 				return 1;
 			f.timeOffset = static_cast< double >( kR ) / 10.0;
 			if( !f.Render( 1 ) )
 				return 1;
 			refilled = differing( b.Output(), f.Output() );
 		}
-		Check( newFilm == 0, fmt( "%4dx%-4d New Film at 5 s against a fresh instance's second frame: %zu values differ (bit-exact)", w, h, newFilm ) );
+		Check( newFilm == 0, fmt( "%4dx%-4d New Film at 0.5 s of stirred film against a fresh instance's second frame: %zu values differ (bit-exact)", w, h, newFilm ) );
 		Check( kR >= 0 && emptyFrames > 0 && emptyWrong == 0 && refilled == 0,
 		       fmt( "%4dx%-4d burst at %.6f s of age (the front 10%% down), %.6f s of burst, %.6f s empty: %d frames empty, %d of them showing "
 		            "anything; the new film at frame %d (%.6f s) against a fresh instance at its age (%lld us): %zu values differ (bit-exact)",
@@ -1663,7 +1692,8 @@ int runGLState( const Perturb& perturb )
 int runRobust( const Perturb& perturb )
 {
 	std::printf( "\n=== robust: a clip out of range (-1, 2, 1e30, +-inf and NaN in a float texture, alpha too) is the clip tamed (NaN 0, then\n"
-	             "    clamped), bit for bit at Mix 1, through 3 s of stirred film; every control at its ends, for 3 s at 10 fps, gives finite output\n" );
+	             "    clamped), bit for bit at Mix 1, after 0.5 s of stirred film; every control at its ends, for 2.4 s at 10 fps (Burst 0.1: the\n"
+	             "    law bursts the film at 2.0 s, so at the defaults the last frame is mid-burst; Swirl 0 but at Swirl's own ends), gives finite output\n" );
 	for( const Raster& raster : kRasters )
 	{
 		const int w = raster.w, h = raster.h;
@@ -1688,24 +1718,28 @@ int runRobust( const Perturb& perturb )
 			stirred( *r );
 			r->Set( PT_DRAINAGE, pDrainage( 4.0 ) );
 		}
-		if( !a.Render( 31 ) || !b.Render( 31 ) )
+		if( !a.RenderTo( 5 ) || !b.RenderTo( 5 ) )
 			return 1;
 		const size_t differ = differing( a.Output(), b.Output() );
-		int nonFinite = 0, tried = 0;
+		int nonFinite = 0, tried = 0, bursting = 0;
 		bool passedThrough = false;
 		for( unsigned int id = 0; id < PT_ABOUT_TEXT; ++id )
 		{
 			const ControlInfo& info = InfoOf( id );
 			for( const float end : { 0.0f, info.kind == Kind::Option ? static_cast< float >( info.optionCount - 1 ) : 1.0f } )
 			{
+				// The stirring (the costly pass on a software renderer) is on
+				// for the wild and tame pair above and for Swirl's own ends.
 				Rig r;
 				if( !startRig( r, w, h, perturb, &wild, 10.0 ) )
 					return 1;
-				stirred( r );
-				r.Set( PT_BURST, 0.5f );
+				r.Set( PT_THICKNESS, pThickness( 0.2 ) );
+				r.Set( PT_DRAINAGE, pDrainage( 10.0 ) );
+				r.Set( PT_BURST, 0.1f );
 				r.Set( id, end );
-				if( !r.Render( 31 ) )
+				if( !r.RenderTo( 24 ) )
 					return 1;
+				bursting += r.plugin.FilmClock().phase == film::Phase::Bursting;
 				const Floats out = r.Output();
 				//Mix 0 hands the clip through untouched, NaN and all.
 				if( id == PT_MIX && end == 0.0f )
@@ -1723,9 +1757,9 @@ int runRobust( const Perturb& perturb )
 			}
 		}
 		Check( differ == 0 && nonFinite == 0 && passedThrough,
-		       fmt( "%4dx%-4d the wild clip against the tamed one after 3 s: %zu values differ (bit-exact); %d renders with one control at an end: "
-		            "%d with any non-finite value; Mix 0 hands the wild clip through byte for byte: %s",
-		            w, h, differ, tried, nonFinite, passedThrough ? "yes" : "NO" ) );
+		       fmt( "%4dx%-4d the wild clip against the tamed one after 0.5 s: %zu values differ (bit-exact); %d renders with one control at an end "
+		            "(%d of them mid-burst at the last frame): %d with any non-finite value; Mix 0 hands the wild clip through byte for byte: %s",
+		            w, h, differ, tried, bursting, nonFinite, passedThrough ? "yes" : "NO" ) );
 	}
 	return Verdict();
 }

@@ -68,8 +68,10 @@ const ControlInfo kTable[] = {
 static_assert( sizeof( kTable ) / sizeof( kTable[ 0 ] ) == PT_ABOUT_TEXT, "every control needs a row in the table" );
 } // namespace
 
-//Provisional until tools/clips.py defaults has measured it.
-const double kDefaultExposure = 12.0;
+// tools/clips.py defaults, 2026-11-17: over the 33 demo clips at Exposure 1, the
+// median of each clip's 99th-percentile brightest output channel is 0.011594
+// (the film reflects about 4% of the clip), so 1 / 0.011594.
+const double kDefaultExposure = 86.2515;
 
 const ControlInfo& InfoOf( unsigned int id )
 {
