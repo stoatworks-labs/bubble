@@ -58,7 +58,12 @@ channel).
   from the closed form). **Exposure 86.2515 from Resolume's 33 demo clips** (below).
 - **CIE data under CC BY-SA 4.0** is compiled in and summed into the colour table, which is an
   adaptation: the tables and the colour table are CC BY-SA 4.0, the code MIT (ATTRIBUTIONS.md).
-  This is an open question for Allan, not a settled release position.
+  **Settled for release (2026-11-18) by precedent:** filament (public, v0.1.0 on 2026-09-25)
+  commits the same CIE 1931 dataset unedited (`tools/data/ciexyz31_1.csv`,
+  doi:10.25039/CIE.DS.xvudnb9b) and bakes `source/PlanckTable.h` from it. Bubble ships its two
+  CIE files unedited with the CIE's metadata, credits them with their licence and the CIE's
+  copyright in ATTRIBUTIONS.md and on the website's attributions page, and says beside them
+  (`data/README.md`) that they are the CIE's, under CC BY-SA 4.0, not MIT.
 - **The harness skips the composite on frames it never reads** (`Rig::Advance`, Mix 0: the
   composite's early out). The plugin reads Mix only as the composite's uniform, so the clock,
   the burst's phases and the advection run exactly as at any Mix; the measured frame is always
@@ -232,9 +237,10 @@ answer, not a defect.
 
 ## Open questions
 
-1. **CC BY-SA 4.0.** The CIE tables are compiled into the binary and summed into the colour
-   table (an adaptation). Is "data and colour table CC BY-SA, code MIT" how a release should
-   read, or should the colour come from an unencumbered fit (Wyman–Sloan–Shirley, as holofoil)?
+1. **CC BY-SA 4.0** (settled for v0.1.0, above). The CIE tables are compiled into the binary
+   and summed into the colour table (an adaptation): "data and colour table CC BY-SA, code MIT",
+   as filament's release reads. An unencumbered fit (Wyman–Sloan–Shirley, as holofoil) remains
+   possible later; it would change every colour, so it would be a new release.
 2. **The defaults.** At 1.5 µm and Drainage 4 the black film is 1% of the way down at 4.6 s and
    9% at 10 s, and the film bursts at 30.3 s (the closed form); the bottom stays high-order grey for much of it. A thinner or
    faster default would show more colour sooner. Your call.

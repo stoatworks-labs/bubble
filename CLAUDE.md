@@ -102,10 +102,16 @@ composite's black-film and burst tests, or Exposure's default. The spec is
 - **Provisional hand copies:** `source/StoatworksAbout*.h` (guide = "", no user guide) and
   `ATTRIBUTIONS.md`. Once the project is registered in stoatworks-backend, `sync-about.py`
   and `sync-attributions.py` generate them; edit them there then.
-- **No workflows, and none to add**: the repo has no remote and may stay private; GitHub
-  Actions are for public repos only. `tools/verify.sh` is the whole of the verification.
-- Local only: `~/dev/bubble`, no remote, nothing released, not on the website, never
-  loaded into Resolume. No Windows build has been tried.
+- **Public, so Actions run here** (github.com/stoatworks-labs/bubble, public since
+  2026-11-18). `.github/workflows/ci.yml` (convergence's) builds on macOS (arm64, then
+  `bbtest --list`, `bbtest --offline` and `glslc`) and Windows (x64, GLEW from vcpkg) on every
+  push, pull request and dispatch; `release.yml` builds the universal bundle and the Windows DLL
+  (checked by `tools/wincheck.ps1`, which loads it as a host does) on a `v*` tag or a dispatch,
+  and publishes only on a tag. The pixel checks need a GPU and run only in `tools/verify.sh`,
+  which is still the verification.
+- `~/Projects/resolume/bubble`. The CIE tables in `data/` are the CIE's, under CC BY-SA 4.0,
+  not MIT (`data/README.md`, ATTRIBUTIONS.md); settled for release by filament's precedent
+  (AGENTS.md).
 
 ## Diagnostics
 

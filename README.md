@@ -48,7 +48,7 @@ premultiplied). Use Add or Screen to lay it over other layers.
 
 ## Status
 
-**v0.1.0, local only, 17 November 2026. Never loaded into Resolume.**
+**v0.1.0, being released, 18 November 2026. Not yet loaded into Resolume.**
 
 ### Measured offline, on macOS
 
@@ -92,8 +92,10 @@ CPU's time a frame were not measured separately. macOS only.
 
 - **No host has loaded it.** Not Arena, not Avenue, on any platform. `oxbow` (the fleet's test
   host) reads the bundle and renders through it, which is all.
-- **Windows** has never been built, and there is no CI. The x86_64 slice is built and checked
-  with `lipo`; it has never run.
+- **Windows** is built by CI (`.github/workflows/ci.yml`, x64, GLEW from vcpkg) and the
+  release's DLL is checked by `tools/wincheck.ps1`, which loads it as a host does; none of the
+  pixel checks has run on Windows. The x86_64 macOS slice is built and checked with `lipo`; it
+  has never run.
 - **No real soap film has been compared with it.** Every check is against the published
   physics and the harness's own restatement of it, not against a filmed bubble.
 - **Chosen, not measured:** the stirring (six box modes, not the film's own Marangoni flow);
@@ -140,7 +142,8 @@ That's the whole lot: shader hygiene and `glslc`, a fresh universal build with n
 the bundle's architecture, plist and ad-hoc signature, a host's view of it through `oxbow`
 (required), every check at two rasters and again on the software renderer, the alpha check and
 Exposure's default on Arena's demo clips (required), the pipe, the negative controls, the
-mutants, the sweep for dead controls and the render cost. There is no CI: this script is the
+mutants, the sweep for dead controls and the render cost. CI (`.github/workflows/ci.yml`)
+builds on macOS and Windows and runs the checks that need no GL; this script is the
 verification. `CLAUDE.md` lists the checks one by one; `./build/bbtest --all` runs them all.
 
 Render a frame of your own, ten seconds into the film's life:
@@ -160,8 +163,9 @@ ffmpeg -nostdin -i in.mov -f rawvideo -pix_fmt rgba - | ./build/bbtest --pipe --
 ## License
 
 The code is MIT: see [LICENSE](LICENSE). The CIE colour-matching functions and illuminant D65
-under `data/`, and the colour table the plugin sums from them, are CC BY-SA 4.0: see
-[ATTRIBUTIONS.md](ATTRIBUTIONS.md).
+under `data/` are the CIE's, © International Commission on Illumination, and they and the
+colour table the plugin sums from them are CC BY-SA 4.0, not MIT: see
+[data/README.md](data/README.md) and [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
 
 <!-- attributions:start -->
 This project is built on other people's work — see [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
