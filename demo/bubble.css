@@ -1,0 +1,72 @@
+/*
+ * Bubble's own additions to the kit's page: the photosensitivity warning and
+ * its start button at the top (xenon's, which is intensifier's), the Pop and
+ * New Film buttons, and the line under the picture with its flash warning.
+ * Everything else is vendor/kit.css, unedited.
+ */
+
+.bb-warning {
+  /* #demo is 1400px wide with a 20px gutter: line up with what is inside it. */
+  max-width: 1360px;
+  margin: 24px auto 0;
+  padding: 16px 18px;
+  background: #1f1a0c;
+  border: 1px solid #5a4613;
+  border-left: 4px solid var(--warn);
+  border-radius: 8px;
+  color: #f3e9cf;
+}
+
+@media (max-width: 1400px) {
+  .bb-warning { margin-left: 20px; margin-right: 20px; }
+}
+@media (max-width: 480px) {
+  .bb-warning { margin-left: 16px; margin-right: 16px; padding: 14px; }
+}
+
+.bb-warning__title {
+  font-size: 18px;
+  color: var(--warn);
+  margin-bottom: 6px;
+}
+
+.bb-warning p { margin: 8px 0 0; max-width: 80ch; font-size: 14px; }
+
+.bb-warning__start {
+  margin-top: 14px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 650;
+  border-color: var(--warn);
+}
+.bb-warning__start:disabled { opacity: 0.6; cursor: progress; }
+
+.bb-warning__note:empty { display: none; }
+.bb-warning__note { color: #d9cfb4; }
+
+/* Started: the warning stays, smaller, so a visitor who scrolls back sees it. */
+.bb-warning.is-started { padding: 10px 14px; }
+.bb-warning.is-started p { font-size: 13px; }
+
+/* ---- Pop and New Film: a press, not a toggle ------------------------------ */
+
+.bb-press { text-align: center; }
+
+/* ---- the line under the picture ------------------------------------------ */
+
+#bubble-status { overflow-wrap: anywhere; }
+
+.bb-caution {
+  border-color: #5a4613;
+  background: #1f1a0c;
+  color: #f3e9cf;
+}
+.bb-caution[hidden] { display: none; }
+
+.bb-log {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.bb-log:empty { display: none; }
