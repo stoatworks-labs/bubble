@@ -37,6 +37,38 @@ second, 11 at three times); and **at the defaults, on 2 clips that already flick
 Exposure brightens what the film reflects. The defaults are as designed; the
 [user guide](docs/USER-GUIDE.md#flashing) has the numbers and what keeps it under the line.
 
+<!-- downloads:start -->
+
+## Download
+
+**[v0.1.0](https://github.com/stoatworks-labs/bubble/releases/tag/v0.1.0)** — prebuilt for macOS and Windows. Pick your platform:
+
+<details>
+<summary><b>macOS</b> — Universal (Apple Silicon + Intel)</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| Universal (Apple Silicon + Intel) · .dmg disk image | [`bubble-0.1.0-macos-universal.dmg`](https://github.com/stoatworks-labs/bubble/releases/download/v0.1.0/bubble-0.1.0-macos-universal.dmg) | 267 KB |
+| Universal (Apple Silicon + Intel) · .zip archive | [`bubble-macos-universal.zip`](https://github.com/stoatworks-labs/bubble/releases/latest/download/bubble-macos-universal.zip) | 226 KB |
+
+</details>
+
+<details>
+<summary><b>Windows</b> — x64</summary>
+
+| Build | Download | Size |
+| --- | --- | --- |
+| x64 · .exe installer | [`bubble-0.1.0-windows-x86_64-setup.exe`](https://github.com/stoatworks-labs/bubble/releases/download/v0.1.0/bubble-0.1.0-windows-x86_64-setup.exe) | 267 KB |
+| x64 · .zip archive | [`bubble-windows-x86_64.zip`](https://github.com/stoatworks-labs/bubble/releases/latest/download/bubble-windows-x86_64.zip) | 140 KB |
+
+</details>
+
+All builds, checksums and release notes: [github.com/stoatworks-labs/bubble/releases](https://github.com/stoatworks-labs/bubble/releases).
+
+macOS builds are signed and notarised and open normally. The Windows builds are unsigned, so SmartScreen warns once.
+
+<!-- downloads:end -->
+
 ## Controls
 
 | Group | |
@@ -91,7 +123,11 @@ film there faster than down into the thick film below.</sub>
   Mix 5.7, Swirl 4.9, Black Film 3.2, Angle 3.2, Opacity 2.3, Drainage 1.9). The skip is Pop
   and New Film, recorded inert: the gate sends no presses. No shader or error lines in
   Arena's log, and Arena stayed up. The plugin's own log: llvmpipe (Mesa 26.2),
-  `initialised`, and Arena's clock in milliseconds, detected (scale 0.001).
+  `initialised`, and Arena's clock in milliseconds, detected (scale 0.001). Run again after the
+  tag on the release's own DLL (`bubble-windows-x86_64.zip` from v0.1.0): **9 passed, 0 failed,
+  1 skipped** again, every control it can set live (ratios Drainage 48, Thickness 7.0, Mix 4.4,
+  Black Film 3.3, Angle 3.1, Swirl 3.1, Opacity 2.3; Exposure, Burst, Slow Motion and Refill
+  outright).
 - **macOS: Arena 7.29.0 on an Apple M4 Max**, the release workflow's universal bundle from a
   dispatched build of 50fc8d4 (ad-hoc signed, not the notarised download; the plugin's source
   is unchanged from there to the tag), mounted on a clip

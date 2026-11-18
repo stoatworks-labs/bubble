@@ -371,7 +371,9 @@ route: the zone is at Cloudflare's 100 custom domains, so `bubble-demo` needs a 
   controls passed on the between/within spread ratio (Thickness 7.2, Mix 5.7, Swirl 4.9, Black
   Film 3.2 at Drainage 1.0, Angle 3.2, Opacity 2.3, Drainage 1.9), the rest outright (Exposure
   101, Burst 101, Slow Motion 63 at Burst 0, Refill 25 at Burst 0 + Slow Motion 0). Its log:
-  llvmpipe, `initialised`, clock scale 0.001.
+  llvmpipe, `initialised`, clock scale 0.001. Re-run after the tag on the release zip's DLL:
+  9/0/1 again (Drainage's ratio 48 that time against 1.9, its within-setting spread small; the
+  other ratios within ~1.8 of the first run's).
 - **Found while checking the video's captions**: at the defaults the film is so thin by 30 s
   that even at 100x the hole crosses in 4 frames; the frame then waits out the rest of the
   burst's span (sized for 4 um film) and the Refill, about 2 s of black. The video's caption,
