@@ -99,9 +99,12 @@ composite's black-film and burst tests, or Exposure's default. The spec is
 - `bubble_core` is an OBJECT library: the plugin registers itself from a file-scope
   constructor nothing references.
 - The macOS build must be universal. Check with `lipo`, never the build log.
-- **Provisional hand copies:** `source/StoatworksAbout*.h` (guide = "", no user guide) and
-  `ATTRIBUTIONS.md`. Once the project is registered in stoatworks-backend, `sync-about.py`
-  and `sync-attributions.py` generate them; edit them there then.
+- **Generated, never edited here:** `source/StoatworksAbout.h` (stoatworks-backend's
+  `sync-about.py`, from the website's projects.json), `ATTRIBUTIONS.md` (`sync-attributions.py`,
+  from the backend's `attributions/derived.json`), `.github/FUNDING.yml` and
+  `.github/ISSUE_TEMPLATE/` (`sync-funding.sh`, `sync-issue-templates.py`). The About block is
+  17 host parameters in all: the 12 controls, the About text and four buttons (User guide,
+  Project page, Source on GitHub, Support the work).
 - **Public, so Actions run here** (github.com/stoatworks-labs/bubble, public since
   2026-11-18). `.github/workflows/ci.yml` (convergence's) builds on macOS (arm64, then
   `bbtest --list`, `bbtest --offline` and `glslc`) and Windows (x64, GLEW from vcpkg) on every
