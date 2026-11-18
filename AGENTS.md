@@ -349,6 +349,35 @@ route: the zone is at Cloudflare's 100 custom domains, so `bubble-demo` needs a 
   next frame; it counts across instances. The kit's hidden embed statement says "ported to
   WebGL2" even for a WebAssembly demo (kit text, left alone).
 
+## In Resolume (2026-11-18, the release)
+
+- **macOS, Arena 7.29.0 on the M4 Max**, the CI's universal bundle from 50fc8d4 (the plugin's
+  source is unchanged to the tag), driven over Arena's REST API on 8080 and read off the
+  composition snapshot, over a still frame of IntoTheGlow_21 (the release scratch's
+  `mac/macprobe.py`). All 17 parameters (18 with Opacity) at their declared defaults; Arena's
+  clock in ms, voted (scale 0.001); Mix 0 the bare still exactly. The film moves on a still, so
+  every control was read in a calm film (Drainage 0.1, Swirl 0, Burst 1) against a
+  same-settings pair (5.0 levels over 1.5 s): Thickness 0.2 um 38.0 levels live (4 um only
+  5.9: thick films are all pale), Angle 60 42.2, Exposure 0 96.9 / 200 38.7, Swirl 20 mm/s
+  12.3, Drainage 10 37.5, Black Film Newton 3.8 on a held black-topped film (floor 0.41). Pop
+  and New Film pressed over REST (PUT true, then false): a Pop at 1000x still growing at 3 s;
+  New Film within 0.18 levels of a fresh film. **The defaults' timeline on Arena's clock**: a
+  new film whole at 30.0 s, gone by 30.3 s, black to 32.3 s, a new film at 32.5 s (the law's
+  30.29 s, the 1.22 s span, the 1 s Refill). A clip retrigger keeps the film (same effect id).
+  The Quit! dialog came up; Quit (never Save & Quit), show files' dates unchanged.
+- **Windows, the win-lab gate** (plugin-bench `arena/expect/bubble.json`): Arena 7.27.1, llvmpipe, the
+  dispatch DLL from 50fc8d4: 9 passed, 0 failed, 1 skipped (Pop and New Film inert). The film
+  drains between grabs, so the noise floor at the defaults is 40.2 levels; the drifting
+  controls passed on the between/within spread ratio (Thickness 7.2, Mix 5.7, Swirl 4.9, Black
+  Film 3.2 at Drainage 1.0, Angle 3.2, Opacity 2.3, Drainage 1.9), the rest outright (Exposure
+  101, Burst 101, Slow Motion 63 at Burst 0, Refill 25 at Burst 0 + Slow Motion 0). Its log:
+  llvmpipe, `initialised`, clock scale 0.001.
+- **Found while checking the video's captions**: at the defaults the film is so thin by 30 s
+  that even at 100x the hole crosses in 4 frames; the frame then waits out the rest of the
+  burst's span (sized for 4 um film) and the Refill, about 2 s of black. The video's caption,
+  the guide and the README say so; whether the empty time should start when the hole has
+  crossed is open question 10.
+
 ## Open questions
 
 1. **CC BY-SA 4.0** (settled for v0.1.0, above). The CIE tables are compiled into the binary
@@ -373,3 +402,8 @@ route: the zone is at Cloudflare's 100 custom domains, so `bubble-demo` needs a 
    an effect premultiplied colour has not been checked.
 9. **The stirring's speed bound**: the build's root-sum-square form leaves the flow up to
    1/√2 slower than Swirl says; the draft's max form is tight per mode. Change it back?
+10. **The burst's empty time.** The burst phase lasts the time the hole would take through 4 um
+    film (1.22 s at 100x, 12.2 s at 1000x for 16:9) however quickly the real hole crosses, and
+    Refill starts only after it. At the defaults the hole is across in 4 frames, then ~2 s of
+    black; at 1000x a burst is followed by ~12 s of black before Refill. End the phase when the
+    hole has crossed the frame instead? (Released as built.)

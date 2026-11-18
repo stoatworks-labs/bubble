@@ -1,8 +1,9 @@
 # bubble
 
 > **AI-assisted project.** This codebase was created with [Claude](https://claude.com/claude-code)
-> (Anthropic), directed and reviewed by a human author. **It has never been loaded into
-> Resolume.** What's established is established by an offline harness, `bbtest`, that drives
+> (Anthropic), directed and reviewed by a human author. It has been loaded into Resolume
+> Arena on macOS and on Windows and ran there, over still pictures (see [Status](#status)).
+> Everything else below is established by an offline harness, `bbtest`, that drives
 > the real plugin class through the same `ProcessOpenGL` a host calls, in a headless GL
 > context, on this Mac's GPU at two rasters and on Apple's software renderer. Read off the
 > picture, a uniform film's colour matches the harness's own **transfer-matrix × CIE 1931 ×
@@ -24,6 +25,17 @@ down and spread, the top goes silvery white and then, below about 30 nm, black, 
 edge. Stir it and the colours swirl. Then it bursts: a hole opens in the black film and races
 out, faster through thin film than thick. The clip is what the film reflects, tinted by it.
 Nothing is drawn: it all comes out of the thickness.
+
+**Photosensitivity.** Bubble makes flashes of its own: a burst takes the picture to black and a
+new film brings it back. At its defaults it bursts once every half minute or so, but measured
+with the WCAG general-flash rule (more than three flashes a second over the whole frame or any
+third-of-frame window) over Resolume's 33 demo clips, it goes over the line in three ways:
+**Burst at 0 with a Refill under 0.1 s** at Slow Motion 10 × or less, which bursts each film as
+it is made (**14** of the 33 clips, up to 11 flashes a second in part of the frame); **Pop
+pressed twice a second or faster** with Slow Motion at 1 × and a short Refill (1 clip at twice a
+second, 11 at three times); and **at the defaults, on 2 clips that already flicker**, because
+Exposure brightens what the film reflects. The defaults are as designed; the
+[user guide](docs/USER-GUIDE.md#flashing) has the numbers and what keeps it under the line.
 
 ## Controls
 
@@ -48,7 +60,72 @@ premultiplied). Use Add or Screen to lay it over other layers.
 
 ## Status
 
-**v0.1.0, being released, 18 November 2026. Not yet loaded into Resolume.**
+**v0.1.0, 18 November 2026, and early days.** It has been loaded into Resolume Arena on
+Windows and on macOS (below), over still pictures: never a moving clip, never in a show. The
+macOS build is Developer ID-signed and notarised. There's a [user guide](docs/USER-GUIDE.md)
+and a [browser demo](#browser-demo), but no OpenFX port and no presets.
+
+### In Resolume
+
+![A tunnel of metal struts seen in a soap film, bands of colour across its top, with a black
+hole opening from the top edge: wide along the top, curving down to a point in the middle of
+the picture](docs/arena.jpg)
+
+<sub>SW Bubble inside Resolume Arena 7.29.0 on an Apple M4 Max, from Arena's composition
+snapshot over REST, 18 November 2026: a frame of the demo clip IntoTheGlow_21 held still, a
+fresh 1.5 µm film at Drainage 0.1 ×, one second after Pop was pressed over REST at Slow Motion
+1000 ×. The hole opened near the top, where a new film is thinnest, and raced along the thin
+film there faster than down into the thick film below.</sub>
+
+- **Windows: Arena 7.27.1 on win-lab, software rendering (Mesa llvmpipe, no GPU)**, the
+  release workflow's x64 DLL from a dispatched build of 50fc8d4 (the plugin's source is
+  unchanged from there to the tag), through the fleet's Arena gate on 18 November 2026:
+  **9 passed, 0 failed, 1 skipped**. Arena loaded it and registered `SW Bubble` `BB01` as an
+  effect; all 17 parameters (with Arena's Opacity, 18) matched name, order, type, range and
+  default; the frame had content, 37.5 levels from the bare input at the defaults (the film
+  drains between grabs, so the noise floor is 40.2 levels); and every control it can set moved
+  the picture, Black Film at Drainage 10 ×, Slow Motion at Burst 0 and Refill at Burst 0 and
+  Slow Motion 1 ×, where they act. Exposure, Burst, Slow Motion and Refill moved it outright
+  (101, 101, 63 and 25 levels); the controls that change a film that is already changing
+  passed on the ratio of the spread between settings to the spread within one (Thickness 7.2,
+  Mix 5.7, Swirl 4.9, Black Film 3.2, Angle 3.2, Opacity 2.3, Drainage 1.9). The skip is Pop
+  and New Film, recorded inert: the gate sends no presses. No shader or error lines in
+  Arena's log, and Arena stayed up. The plugin's own log: llvmpipe (Mesa 26.2),
+  `initialised`, and Arena's clock in milliseconds, detected (scale 0.001).
+- **macOS: Arena 7.29.0 on an Apple M4 Max**, the release workflow's universal bundle from a
+  dispatched build of 50fc8d4 (ad-hoc signed, not the notarised download; the plugin's source
+  is unchanged from there to the tag), mounted on a clip
+  over Arena's REST API and read off Arena's composition snapshot (the mean difference over the
+  middle three fifths of a 1920×1080 JPEG), over a frame of IntoTheGlow_21 held still. Arena's
+  log: `registered extension: 'SW Bubble' uid: BB01 category: 1`.
+  - all **17** parameters shown (18 with Arena's own Opacity) at the declared defaults, Black
+    Film offering Common and Newton, Pop and New Film as events, and the About line
+    `Bubble v0.1.0 - MIT - Stoatworks Labs, stoatworks-labs.com`. Its log: Arena's clock arriving
+    in milliseconds, which it detected (scale 0.001);
+  - Mix 0 gives the bare still exactly (**0.0**); at the defaults two snapshots a second apart
+    differ by **45.8** levels (the film draining on Arena's clock);
+  - in a calm film (Drainage 0.1 ×, Swirl 0, Burst never), two snapshots 1.5 s apart differ by
+    **5.0** levels, and against that: Thickness 0.2 µm **38.0** levels (live, no New Film; 4 µm
+    only 5.9, as thick films are all pale), Angle 60° **42.2**, Exposure 0 **96.9** (black) and
+    200 **38.7**, Swirl 20 mm/s for 2 s **12.3** (still again once it stops, 5.4), Drainage 10 ×
+    for 2 s **37.5**;
+  - Black Film: on a black-topped 0.2 µm film held still (floor **0.41**), Newton against Common
+    **3.8** levels, the black top's mean falling from 14.5 to 2.5; back to Common, **0.57**;
+  - **Pop**, pressed over REST at Slow Motion 1000 ×: **25.4** levels after 1 s, and the hole
+    still growing, **71.6** more by 3 s (pictured). **New Film** during that burst: back to a
+    fresh film, **0.18** levels from one pulled earlier. Burst 0 at 1000 × burst the film as soon
+    as it was set (**36.9** levels 1.5 s later). Slow Motion 1 × with Refill 10 s: the frame
+    black 2 s after a Pop; with Refill 1 s, a new film there instead (**1.7** levels from before
+    the Pop);
+  - **the defaults on Arena's clock**: a new film pulled over REST was whole at 30.0 s and gone
+    by **30.3 s**, black until **32.3 s** and a new film at **32.5 s**: the law's burst at 30.29 s,
+    the burst's 1.22 s span and the 1 s Refill (the harness shows the same: the film gone in 4
+    frames, even at 100 ×);
+  - a clip retrigger doesn't pull a new film: 0.5 s after it the film was **8.3** levels from just
+    before and **30.8** from a fresh one, the same effect instance throughout;
+  - nothing in Arena's log beyond the load and registration, and Arena stayed up. It quit
+    without saving (the Quit! dialog's Quit; every show file's date unchanged) and the bundle
+    was taken out again.
 
 ### Measured offline, on macOS
 
@@ -90,12 +167,12 @@ CPU's time a frame were not measured separately. macOS only.
 
 ### Not established
 
-- **No host has loaded it.** Not Arena, not Avenue, on any platform. `oxbow` (the fleet's test
-  host) reads the bundle and renders through it, which is all.
+- **Resolume, beyond a still picture.** It has loaded in Arena on macOS and Windows (above),
+  never on a moving clip, never in a show, never in Avenue.
 - **Windows** is built by CI (`.github/workflows/ci.yml`, x64, GLEW from vcpkg) and the
-  release's DLL is checked by `tools/wincheck.ps1`, which loads it as a host does; none of the
-  pixel checks has run on Windows. The x86_64 macOS slice is built and checked with `lipo`; it
-  has never run.
+  release's DLL is checked by `tools/wincheck.ps1`, which loads it as a host does, and by the
+  Arena gate (above); none of the harness's pixel checks has run on Windows. The x86_64 macOS
+  slice is built and checked with `lipo`; it has never run.
 - **No real soap film has been compared with it.** Every check is against the published
   physics and the harness's own restatement of it, not against a filmed bubble.
 - **Chosen, not measured:** the stirring (six box modes, not the film's own Marangoni flow);
@@ -107,7 +184,19 @@ CPU's time a frame were not measured separately. macOS only.
 - **Resolume's alpha.** The plugin treats a clip's colour as straight alpha, which is what
   Arena's DXV demo clips decode to; whether Resolume hands an effect premultiplied colour has
   not been checked.
-- No user guide, no presets and no OpenFX port. There is a [browser demo](#browser-demo).
+- **The burst's empty time.** After a burst the frame waits out the burst's whole span, the
+  time the hole would take through 4 µm film (1.22 s at 100 ×, 12.2 s at 1000 × for 16:9),
+  however quickly the hole really crossed: at the defaults the film has thinned for 30 s and is
+  gone in 4 frames, then the frame is black for about 2 s. Whether the empty time should start
+  when the hole has crossed is open.
+- **Open questions** (AGENTS.md has the detail): whether a thinner or faster default film,
+  showing more colour sooner, would be better; Exposure 86 clipping the brightest clips hard
+  (IntoTheGlow_02 at about six times full scale), and its unusual 0–200 range; whether the
+  film should carry its own transparency rather than an opaque black backdrop; a curved-bubble
+  mode (the angle running 0 to 90° from centre to rim, where the table stops at 60°); the
+  stirring's speed bound, which leaves the flow up to 1/√2 slower than Swirl says; and the
+  stirring itself, chosen rather than the film's own Marangoni flow.
+- No presets and no OpenFX port.
 
 ## Browser demo
 

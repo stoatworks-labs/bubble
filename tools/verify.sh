@@ -23,9 +23,9 @@
 # Set TMPDIR to a directory you can write: on this Mac a heredoc (mutate.sh
 # has one) hangs without it.
 #
-# This repo has no CI and no workflows (it has no remote and may stay
-# private; Actions are for public repos only): this script is the whole of
-# the verification, run on this Mac.
+# The repo is public and has CI (.github/workflows/ci.yml: macOS and Windows
+# builds and the checks that need no GL) and a release workflow; this script
+# is the verification, run on this Mac.
 #
 set -euo pipefail
 

@@ -23,7 +23,9 @@ composite's black-film and burst tests, or Exposure's default. The spec is
 - Fast dev build: add `-DCMAKE_OSX_ARCHITECTURES=arm64`
 - Build: `cmake --build build -j8`
 - Install to Resolume: `cmake --install build` (into Arena's Extra Effects).
-  Never from a shared session on this Mac: nothing here has been loaded into Arena.
+  Not from a shared session on this Mac while Arena is open: someone may be using it. v0.1.0
+  was loaded into Arena 7.29.0 here over REST and through the win-lab gate (README, Status);
+  the Mac recipe is the session's macprobe pattern (resolume-arena-hub memory).
 - Render offline: `./build/bbtest --out /tmp/b.png --frames 600 --fps 60` (the defaults over
   the harness's card, ten seconds into the film's life)
 - A clip of your own: `--clip clip.rgba` (raw RGBA at `--size`, top row first)
