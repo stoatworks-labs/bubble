@@ -107,7 +107,20 @@ CPU's time a frame were not measured separately. macOS only.
 - **Resolume's alpha.** The plugin treats a clip's colour as straight alpha, which is what
   Arena's DXV demo clips decode to; whether Resolume hands an effect premultiplied colour has
   not been checked.
-- No user guide, no presets, no OpenFX port and no browser demo.
+- No user guide, no presets and no OpenFX port. There is a [browser demo](#browser-demo).
+
+## Browser demo
+
+[bubble-demo.stoatworks-labs.com](https://bubble-demo.stoatworks-labs.com/) runs the plugin
+in your browser: its own C++, the plugin class with its film's clock and its colour table
+summed from the CIE's data, compiled unmodified to WebAssembly and drawing with its own GLSL in
+WebGL2. The page is the host and its clock, the clips are generated (or a picture or video of
+your own) and the raster is the page's. Nothing moves until you press Start under its
+photosensitivity warning: some settings flash. Stepped frame by frame, the page matched
+`bbtest --pipe`'s output on the same input, settings and host clock at 13 frames in eight
+cases: nine byte for byte, the four longer stirred ones by one 8-bit code in 1 or 2 of
+172,800 values. It needs WebGL2's EXT_color_buffer_float. It is a demo, not the plugin, and
+the page lists what it leaves out.
 
 ## Build
 

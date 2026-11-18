@@ -116,6 +116,26 @@ composite's black-film and burst tests, or Exposure's default. The spec is
   not MIT (`data/README.md`, ATTRIBUTIONS.md); settled for release by filament's precedent
   (AGENTS.md).
 
+## Browser demo
+- `demo/` is served at https://bubble-demo.stoatworks-labs.com/ by the Worker in
+  `wrangler.toml` (a route, plus a proxied AAAA `100::` record for `bubble-demo`: delete the
+  record and the page goes dark while deploys stay green). `.github/workflows/deploy.yml`
+  redeploys it on every push to main, so pushing any branch here can reach production; by
+  hand: `cf-run npx wrangler deploy`.
+- **`demo/bubble-core.{js,wasm}` is the plugin's C++, compiled and committed.** After ANY
+  change under `source/` (the generated `StoatworksAbout*.h` included), `data/` or
+  `cmake/CieTables.cmake`, run `demo/tools/build-wasm.sh` (emscripten's `em++`, and cmake for
+  the CIE include) and commit both outputs and `demo/wasm/inputs.sha256`; `tools/verify.sh`
+  fails until you do.
+- `demo/shaders.js` is a copy: after changing a shader, `python3 demo/tools/check_shaders.py
+  --write`. The same script checks every uniform's setter against its GLSL type and the
+  .wasm's input hashes.
+- Nothing renders until the visitor presses Start under the photosensitivity warning
+  (`demo/index.html`); keep that gate. A new setting that can flash goes into its text.
+- Serve locally: `cd demo && python3 -m http.server 8000`, then press Start. Against bbtest:
+  `python3 demo/tools/crosscheck.py --bbtest build/bbtest` (Chrome on the real GPU).
+- `demo/vendor/` is the shared kit (`stoatworks-backend/resolume-demo`); never edit it.
+
 ## Diagnostics
 
 `source/Diag.{h,cpp}`: log file only, no crash handler (this runs inside Resolume). It logs
