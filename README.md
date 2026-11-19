@@ -69,6 +69,15 @@ macOS builds are signed and notarised and open normally. The Windows builds are 
 
 <!-- downloads:end -->
 
+## Video
+
+> **Photosensitivity warning:** this effect makes flashes of its own: a burst takes the picture
+> to black and a new film brings it back. Burst 0 with a short Refill, or Pop pressed rapidly,
+> strobes, and a flickering clip can flash brightly through it. Large-area flashes in the video
+> are kept to three a second or fewer.
+
+[![Bubble: a draining soap film for Resolume, whose colour is its thickness](docs/video-thumb.png)](https://www.youtube.com/watch?v=_bVqW5gsqMo)
+
 ## Controls
 
 | Group | |
